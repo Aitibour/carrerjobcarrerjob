@@ -1,0 +1,101 @@
+<h2>App Layout</h2>
+<p class="subtitle">How should the main application be structured?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="A" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:12px;border-radius:6px;">
+      <div style="display:flex;gap:8px;height:160px;">
+        <div style="width:56px;background:#1e293b;border-radius:4px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:9px;color:#94a3b8;font-weight:bold;margin-bottom:4px;">RADAR</div>
+          <div style="background:#3b82f6;border-radius:3px;padding:4px 6px;font-size:8px;color:white;">Search</div>
+          <div style="background:#1e293b;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">Saved</div>
+          <div style="background:#1e293b;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">My CVs</div>
+          <div style="background:#1e293b;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">Tracker</div>
+          <div style="margin-top:auto;background:#1e293b;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">Profile</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+          <div style="background:#1e293b;border-radius:4px;padding:8px;">
+            <div style="font-size:9px;color:#94a3b8;margin-bottom:4px;">Job Title</div>
+            <div style="background:#0f172a;border-radius:3px;padding:3px 6px;font-size:8px;color:#e2e8f0;">Software Engineer</div>
+          </div>
+          <div style="background:#1e293b;border-radius:4px;padding:8px;flex:1;">
+            <div style="font-size:8px;color:#94a3b8;margin-bottom:4px;">Results</div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="background:#0f172a;border-radius:3px;padding:4px 6px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Google — Senior SWE</span><span style="color:#22c55e;font-weight:bold;">A</span></div>
+              <div style="background:#0f172a;border-radius:3px;padding:4px 6px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Meta — Staff Eng</span><span style="color:#86efac;font-weight:bold;">B+</span></div>
+              <div style="background:#0f172a;border-radius:3px;padding:4px 6px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Stripe — Backend</span><span style="color:#fbbf24;font-weight:bold;">B</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Sidebar Navigation</h3>
+      <p>Persistent left sidebar with all sections always visible. Classic dashboard feel. Best for power users who switch between sections often.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="B" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:12px;border-radius:6px;">
+      <div style="display:flex;flex-direction:column;gap:6px;height:160px;">
+        <div style="background:#1e293b;border-radius:4px;padding:6px 10px;display:flex;gap:10px;align-items:center;">
+          <div style="font-size:9px;color:#3b82f6;font-weight:bold;">RADAR</div>
+          <div style="font-size:8px;color:#3b82f6;border-bottom:2px solid #3b82f6;padding-bottom:2px;">Search</div>
+          <div style="font-size:8px;color:#94a3b8;">Saved</div>
+          <div style="font-size:8px;color:#94a3b8;">My CVs</div>
+          <div style="font-size:8px;color:#94a3b8;">Tracker</div>
+          <div style="margin-left:auto;font-size:8px;color:#94a3b8;">Account</div>
+        </div>
+        <div style="background:#1e293b;border-radius:4px;padding:8px;">
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;background:#0f172a;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">Job title...</div>
+            <div style="flex:1;background:#0f172a;border-radius:3px;padding:4px 6px;font-size:8px;color:#94a3b8;">Location...</div>
+            <div style="background:#3b82f6;border-radius:3px;padding:4px 10px;font-size:8px;color:white;">Search</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+          <div style="background:#1e293b;border-radius:3px;padding:5px 8px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Google — Senior SWE · London</span><span style="color:#22c55e;font-weight:bold;">A · 94%</span></div>
+          <div style="background:#1e293b;border-radius:3px;padding:5px 8px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Meta — Staff Eng · Remote</span><span style="color:#86efac;font-weight:bold;">B+ · 87%</span></div>
+          <div style="background:#1e293b;border-radius:3px;padding:5px 8px;font-size:7px;color:#e2e8f0;display:flex;justify-content:space-between;"><span>Stripe — Backend · NYC</span><span style="color:#fbbf24;font-weight:bold;">B · 79%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Top Navigation</h3>
+      <p>Horizontal nav bar across the top. More screen space for content. Cleaner look on desktop. Works naturally across all sections.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="C" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:12px;border-radius:6px;">
+      <div style="display:flex;flex-direction:column;gap:6px;height:160px;">
+        <div style="background:white;border-radius:4px;padding:6px 10px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          <div style="font-size:9px;color:#2563eb;font-weight:bold;">RadarJobs</div>
+          <div style="font-size:8px;color:#2563eb;border-bottom:2px solid #2563eb;padding-bottom:2px;">Search</div>
+          <div style="font-size:8px;color:#6b7280;">Saved</div>
+          <div style="font-size:8px;color:#6b7280;">My CVs</div>
+          <div style="font-size:8px;color:#6b7280;">Tracker</div>
+          <div style="margin-left:auto;width:20px;height:20px;background:#2563eb;border-radius:50%;"></div>
+        </div>
+        <div style="background:white;border-radius:4px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;border:1px solid #e5e7eb;border-radius:3px;padding:4px 6px;font-size:8px;color:#9ca3af;">Job title...</div>
+            <div style="flex:1;border:1px solid #e5e7eb;border-radius:3px;padding:4px 6px;font-size:8px;color:#9ca3af;">Location...</div>
+            <div style="background:#2563eb;border-radius:3px;padding:4px 10px;font-size:8px;color:white;">Search</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+          <div style="background:white;border-radius:3px;padding:5px 8px;font-size:7px;color:#111827;display:flex;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,0.05);"><span>Google — Senior SWE · London</span><span style="color:#16a34a;font-weight:bold;">A · 94%</span></div>
+          <div style="background:white;border-radius:3px;padding:5px 8px;font-size:7px;color:#111827;display:flex;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,0.05);"><span>Meta — Staff Eng · Remote</span><span style="color:#16a34a;font-weight:bold;">B+ · 87%</span></div>
+          <div style="background:white;border-radius:3px;padding:5px 8px;font-size:7px;color:#111827;display:flex;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,0.05);"><span>Stripe — Backend · NYC</span><span style="color:#d97706;font-weight:bold;">B · 79%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Light Mode + Top Nav</h3>
+      <p>Same top nav structure as B but with a clean light theme. More conventional, LinkedIn-esque feel. Easier to read in bright environments.</p>
+    </div>
+  </div>
+
+</div>
