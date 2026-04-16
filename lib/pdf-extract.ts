@@ -1,11 +1,12 @@
-import pdf from 'pdf-parse'
+import { PDFParse } from 'pdf-parse'
 
 export async function extractText(buffer: Buffer, filename: string): Promise<string> {
   const ext = filename.toLowerCase().split('.').pop()
 
   if (ext === 'pdf') {
-    const data = await pdf(buffer)
-    return data.text
+    const parser = new PDFParse({ data: new Uint8Array(buffer) })
+    const result = await parser.getText()
+    return result.text
   }
 
   if (ext === 'txt' || ext === 'md') {
