@@ -11,6 +11,7 @@ export default function SearchPage() {
   const [jobType, setJobType] = useState('')
   const [jobs, setJobs] = useState<JobWithAnalysis[]>([])
   const [loading, setLoading] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
 
@@ -32,67 +33,125 @@ export default function SearchPage() {
   }
 
   async function analyzeAll() {
+    setAnalyzing(true)
     const unanalyzed = jobs.filter(j => !j.analysis)
     await Promise.all(unanalyzed.map(j => fetch(`/api/jobs/${j.id}/analyze`, { method: 'POST' })))
-    // Refresh results
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
     if (res.ok) setJobs(data.jobs)
+    setAnalyzing(false)
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Find jobs</h1>
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 mb-2">Find your next job</h1>
+        <p className="text-gray-500">Search live listings and get AI match scores for your CV</p>
+      </div>
 
-      <form onSubmit={handleSearch} className="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex gap-3 flex-wrap">
-        <input
-          value={title} onChange={e => setTitle(e.target.value)}
-          placeholder="Job title, e.g. Product Manager"
-          required
-          className="flex-[2] min-w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          value={location} onChange={e => setLocation(e.target.value)}
-          placeholder="Location, e.g. London"
-          required
-          className="flex-1 min-w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={jobType} onChange={e => setJobType(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Any type</option>
-          <option value="full_time">Full-time</option>
-          <option value="part_time">Part-time</option>
-          <option value="contract">Contract</option>
-        </select>
-        <button
-          type="submit" disabled={loading}
-          className="bg-blue-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Searching…' : 'Search'}
-        </button>
+      {/* Search form */}
+      <form onSubmit={handleSearch} className="bg-white border-2 border-gray-100 rounded-3xl p-5 mb-8 shadow-sm">
+        <div className="flex gap-3 flex-wrap">
+          <div className="flex-[2] min-w-48 relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">🔍</span>
+            <input
+              value={title} onChange={e => setTitle(e.target.value)}
+              placeholder="Job title, e.g. Product Manager"
+              required
+              className="w-full border-2 border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+          <div className="flex-1 min-w-32 relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">📍</span>
+            <input
+              value={location} onChange={e => setLocation(e.target.value)}
+              placeholder="Location, e.g. London"
+              required
+              className="w-full border-2 border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors"
+            />
+          </div>
+          <select
+            value={jobType} onChange={e => setJobType(e.target.value)}
+            className="border-2 border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-600"
+          >
+            <option value="">Any type</option>
+            <option value="full_time">Full-time</option>
+            <option value="part_time">Part-time</option>
+            <option value="contract">Contract</option>
+          </select>
+          <button
+            type="submit" disabled={loading}
+            className="bg-blue-600 text-white rounded-xl px-6 py-3 text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-blue-200 whitespace-nowrap"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Searching…
+              </span>
+            ) : 'Search jobs'}
+          </button>
+        </div>
       </form>
 
-      {error && <p className="text-sm text-red-600 mb-4 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-5 py-4 mb-6 flex items-center gap-2">
+          <span>⚠️</span> {error}
+        </div>
+      )}
 
       {searched && !loading && (
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-gray-500">{jobs.length} jobs found{jobs.length > 0 && ' · Analyze to see match grades'}</p>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <span className="font-bold text-gray-900">{jobs.length} jobs found</span>
+            {jobs.length > 0 && (
+              <span className="text-gray-400 text-sm ml-2">· Click Analyze to see your match grade</span>
+            )}
+          </div>
           {jobs.some(j => !j.analysis) && (
             <button
               onClick={analyzeAll}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              disabled={analyzing}
+              className="text-sm bg-violet-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-violet-700 disabled:opacity-50 transition-all flex items-center gap-2"
             >
-              Analyze all
+              {analyzing ? (
+                <>
+                  <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Analyzing…
+                </>
+              ) : '🎯 Analyze all'}
             </button>
           )}
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
+      {/* Empty state */}
+      {searched && !loading && jobs.length === 0 && !error && (
+        <div className="text-center py-16 text-gray-400">
+          <div className="text-5xl mb-4">🔍</div>
+          <p className="font-semibold text-gray-600">No jobs found</p>
+          <p className="text-sm mt-1">Try a different title or location</p>
+        </div>
+      )}
+
+      {/* Initial state */}
+      {!searched && (
+        <div className="text-center py-16 text-gray-400">
+          <div className="text-5xl mb-4 animate-float">🎯</div>
+          <p className="font-semibold text-gray-600">Search for jobs above</p>
+          <p className="text-sm mt-1">We&apos;ll match them against your CV and grade each one</p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4">
         {jobs.map(job => (
           <JobCard key={job.id} job={job} analysis={job.analysis} />
         ))}
