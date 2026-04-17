@@ -47,3 +47,5 @@ next-env.d.ts
 
 # Netlify
 .netlify/
+.claude/
+.superpowers/
