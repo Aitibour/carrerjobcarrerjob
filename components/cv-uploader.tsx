@@ -20,17 +20,23 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
   async function submit(file?: File) {
     setLoading(true)
     setError('')
-    const formData = new FormData()
-    if (file) formData.append('file', file)
-    else formData.append('text', text)
+    setSuccess(false)
+    try {
+      const formData = new FormData()
+      if (file) formData.append('file', file)
+      else formData.append('text', text)
 
-    const res = await fetch('/api/cv/upload', { method: 'POST', body: formData })
-    const data = await res.json()
+      const res = await fetch('/api/cv/upload', { method: 'POST', body: formData })
+      const data = await res.json()
 
-    if (!res.ok) { setError(data.error); setLoading(false); return }
-    setSuccess(true)
-    router.refresh()
-    setLoading(false)
+      if (!res.ok) { setError(data.error ?? 'Upload failed. Please try again.'); return }
+      setSuccess(true)
+      router.refresh()
+    } catch {
+      setError('Something went wrong. Check your connection and try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleSearch(e: React.FormEvent) {
