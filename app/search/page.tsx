@@ -38,7 +38,7 @@ export default function SearchPage() {
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
 
-    if (!res.ok) { setError(data.error); setLoading(false); return }
+    if (!res.ok) { setError(data.error ?? `Search failed (${res.status})`); setLoading(false); return }
     setJobs(data.jobs)
     setLoading(false)
   }
