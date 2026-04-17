@@ -2,12 +2,11 @@ export async function extractText(buffer: Buffer, filename: string): Promise<str
   const ext = filename.toLowerCase().split('.').pop()
 
   if (ext === 'pdf') {
-    // Use require to avoid ESM/CJS interop issues with pdf-parse
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse')
-    const data = await pdfParse(buffer)
-    if (!data?.text?.trim()) throw new Error('Could not extract text from PDF. Try a text-based PDF or paste the text directly.')
-    return data.text
+    const { extractText: pdfExtractText } = await import('unpdf')
+    const result = await pdfExtractText(new Uint8Array(buffer), { mergePages: true })
+    const text = Array.isArray(result.text) ? result.text.join('\n') : result.text
+    if (!text?.trim()) throw new Error('Could not extract text from PDF. Try a text-based PDF or paste your CV text directly.')
+    return text
   }
 
   if (ext === 'txt' || ext === 'md') {
