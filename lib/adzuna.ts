@@ -7,34 +7,44 @@ interface SearchParams {
   resultsPerPage?: number
 }
 
-// Map location keywords → Adzuna country codes
 const COUNTRY_MAP: Record<string, string> = {
   // North America
-  usa: 'us', 'united states': 'us', america: 'us',
+  usa: 'us', 'united states': 'us', america: 'us', 'new york': 'us', 'san francisco': 'us',
+  chicago: 'us', boston: 'us', seattle: 'us', austin: 'us', denver: 'us', miami: 'us',
   canada: 'ca', toronto: 'ca', vancouver: 'ca', montreal: 'ca', calgary: 'ca', ottawa: 'ca',
   // UK
   uk: 'gb', 'united kingdom': 'gb', england: 'gb', london: 'gb', manchester: 'gb',
-  birmingham: 'gb', leeds: 'gb', glasgow: 'gb', edinburgh: 'gb',
+  birmingham: 'gb', leeds: 'gb', glasgow: 'gb', edinburgh: 'gb', liverpool: 'gb',
   // Australia
-  australia: 'au', sydney: 'au', melbourne: 'au', brisbane: 'au', perth: 'au',
+  australia: 'au', sydney: 'au', melbourne: 'au', brisbane: 'au', perth: 'au', adelaide: 'au',
   // Germany
-  germany: 'de', berlin: 'de', munich: 'de', hamburg: 'de', frankfurt: 'de',
+  germany: 'de', berlin: 'de', munich: 'de', hamburg: 'de', frankfurt: 'de', cologne: 'de',
   // France
-  france: 'fr', paris: 'fr', lyon: 'fr', marseille: 'fr',
+  france: 'fr', paris: 'fr', lyon: 'fr', marseille: 'fr', toulouse: 'fr',
   // Netherlands
-  netherlands: 'nl', amsterdam: 'nl', rotterdam: 'nl', 'the hague': 'nl',
+  netherlands: 'nl', amsterdam: 'nl', rotterdam: 'nl', 'the hague': 'nl', utrecht: 'nl',
   // India
-  india: 'in', mumbai: 'in', delhi: 'in', bangalore: 'in', hyderabad: 'in', chennai: 'in',
+  india: 'in', mumbai: 'in', delhi: 'in', bangalore: 'in', hyderabad: 'in', chennai: 'in', pune: 'in',
   // New Zealand
   'new zealand': 'nz', auckland: 'nz', wellington: 'nz',
   // South Africa
-  'south africa': 'za', johannesburg: 'za', capetown: 'za', 'cape town': 'za',
+  'south africa': 'za', johannesburg: 'za', 'cape town': 'za', durban: 'za',
   // Brazil
-  brazil: 'br', 'são paulo': 'br', 'sao paulo': 'br', 'rio de janeiro': 'br',
+  brazil: 'br', 'sao paulo': 'br', 'rio de janeiro': 'br',
   // Singapore
   singapore: 'sg',
   // Poland
   poland: 'pl', warsaw: 'pl', krakow: 'pl',
+  // Italy
+  italy: 'it', rome: 'it', milan: 'it',
+  // Spain
+  spain: 'es', madrid: 'es', barcelona: 'es',
+}
+
+const WORLDWIDE_COUNTRIES = ['gb', 'us', 'ca', 'au', 'de', 'fr', 'nl', 'sg']
+
+function isWorldwide(location: string): boolean {
+  return /worldwid|global|remote|anywhere|international/i.test(location)
 }
 
 function detectCountry(location: string): string {
@@ -42,37 +52,79 @@ function detectCountry(location: string): string {
   for (const [keyword, code] of Object.entries(COUNTRY_MAP)) {
     if (lower.includes(keyword)) return code
   }
-  return 'gb' // default UK
+  return 'gb'
 }
 
 export async function searchAdzuna(params: SearchParams): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
   const { title, location, jobType, resultsPerPage = 20 } = params
-  const country = detectCountry(location)
 
+  if (isWorldwide(location)) {
+    return searchMultipleCountries(title, WORLDWIDE_COUNTRIES, jobType, Math.ceil(resultsPerPage / 2))
+  }
+
+  const country = detectCountry(location)
+  const results = await fetchCountry(title, location, country, jobType, resultsPerPage)
+
+  // If primary country returns < 5 results, supplement with worldwide
+  if (results.length < 5) {
+    const extra = await searchMultipleCountries(title, WORLDWIDE_COUNTRIES.filter(c => c !== country), jobType, 5)
+    const seen = new Set(results.map(r => r.adzuna_id))
+    return [...results, ...extra.filter(r => !seen.has(r.adzuna_id))].slice(0, resultsPerPage)
+  }
+
+  return results
+}
+
+async function searchMultipleCountries(
+  title: string,
+  countries: string[],
+  jobType?: 'full_time' | 'part_time' | 'contract',
+  perCountry = 5,
+): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
+  const settled = await Promise.allSettled(
+    countries.map(c => fetchCountry(title, '', c, jobType, perCountry))
+  )
+  const seen = new Set<string>()
+  const merged: Omit<Job, 'id' | 'cached_at'>[] = []
+  for (const r of settled) {
+    if (r.status === 'fulfilled') {
+      for (const job of r.value) {
+        if (!seen.has(job.adzuna_id)) {
+          seen.add(job.adzuna_id)
+          merged.push(job)
+        }
+      }
+    }
+  }
+  return merged
+}
+
+async function fetchCountry(
+  title: string,
+  location: string,
+  country: string,
+  jobType?: 'full_time' | 'part_time' | 'contract',
+  resultsPerPage = 20,
+): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`)
   url.searchParams.set('app_id', process.env.ADZUNA_APP_ID!)
   url.searchParams.set('app_key', process.env.ADZUNA_API_KEY!)
   url.searchParams.set('what', title)
-  url.searchParams.set('where', location)
+  if (location) url.searchParams.set('where', location)
   url.searchParams.set('results_per_page', String(resultsPerPage))
   url.searchParams.set('content-type', 'application/json')
-
   if (jobType === 'full_time') url.searchParams.set('full_time', '1')
   if (jobType === 'part_time') url.searchParams.set('part_time', '1')
   if (jobType === 'contract') url.searchParams.set('contract', '1')
 
   const res = await fetch(url.toString())
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Adzuna API error (${res.status}): ${body.slice(0, 200)}`)
-  }
+  if (!res.ok) return []
 
   const data = await res.json()
-  const results = data.results as AdzunaResult[]
-  return results.map(r => normalise(r, country))
+  return ((data.results ?? []) as AdzunaResult[]).map(r => normalise(r))
 }
 
-function normalise(r: AdzunaResult, country: string): Omit<Job, 'id' | 'cached_at'> {
+function normalise(r: AdzunaResult): Omit<Job, 'id' | 'cached_at'> {
   return {
     adzuna_id: r.id,
     title: r.title,

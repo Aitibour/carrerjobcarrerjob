@@ -79,7 +79,7 @@ export default function SearchPage() {
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">📍</span>
             <input
               value={location} onChange={e => setLocation(e.target.value)}
-              placeholder="Location, e.g. London"
+              placeholder="Location or Worldwide"
               required
               className="w-full border-2 border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors"
             />

@@ -126,7 +126,7 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
             <input
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="Location, e.g. London"
+              placeholder="Location or Worldwide"
               required
               className="w-full border-2 border-white rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white shadow-sm"
             />
