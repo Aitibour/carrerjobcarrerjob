@@ -29,15 +29,21 @@ export default function JobCard({ job, analysis }: JobCardProps) {
   const [analyzing, setAnalyzing] = useState(false)
   const [currentAnalysis, setCurrentAnalysis] = useState<Analysis | null>(analysis)
   const [saved, setSaved] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState('')
 
   async function handleAnalyze() {
     setAnalyzing(true)
-    const res = await fetch(`/api/jobs/${job.id}/analyze`, { method: 'POST' })
-    if (res.ok) {
+    setAnalyzeError('')
+    try {
+      const res = await fetch(`/api/jobs/${job.id}/analyze`, { method: 'POST' })
       const data = await res.json()
+      if (!res.ok) { setAnalyzeError(data.error ?? `Error ${res.status}`); return }
       setCurrentAnalysis(data.analysis)
+    } catch {
+      setAnalyzeError('Network error — try again')
+    } finally {
+      setAnalyzing(false)
     }
-    setAnalyzing(false)
   }
 
   async function handleSave() {
@@ -88,6 +94,9 @@ export default function JobCard({ job, analysis }: JobCardProps) {
           >
             {analyzing ? 'Analyzing…' : 'Analyze'}
           </button>
+        )}
+        {analyzeError && (
+          <span className="text-xs text-red-500 max-w-24 text-right leading-tight">{analyzeError}</span>
         )}
         <button
           onClick={handleSave}
