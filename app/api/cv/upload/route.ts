@@ -18,7 +18,8 @@ export async function POST(request: Request) {
     try {
       content = await extractText(buffer, file.name)
     } catch (err: unknown) {
-      return NextResponse.json({ error: (err as Error).message }, { status: 400 })
+      const msg = err instanceof Error && err.message ? err.message : 'Failed to read file. Try pasting your CV text instead.'
+      return NextResponse.json({ error: msg }, { status: 400 })
     }
   } else if (pastedText?.trim()) {
     content = pastedText.trim()

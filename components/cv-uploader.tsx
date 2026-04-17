@@ -78,8 +78,8 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
           >
             <div className="text-4xl mb-3">📄</div>
             <p className="text-sm font-semibold text-gray-700">Drag & drop your CV or <span className="text-blue-600">browse</span></p>
-            <p className="text-xs text-gray-400 mt-1">.pdf · .txt · .md supported</p>
-            <input ref={fileRef} type="file" accept=".pdf,.txt,.md" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) submit(f) }} />
+            <p className="text-xs text-gray-400 mt-1">.pdf · .docx · .txt · .md supported</p>
+            <input ref={fileRef} type="file" accept=".pdf,.docx,.txt,.md" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) submit(f) }} />
           </div>
         ) : (
           <div>
