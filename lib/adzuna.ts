@@ -41,7 +41,7 @@ const COUNTRY_MAP: Record<string, string> = {
   spain: 'es', madrid: 'es', barcelona: 'es',
 }
 
-const WORLDWIDE_COUNTRIES = ['gb', 'us', 'ca', 'au', 'de', 'fr', 'nl', 'sg']
+const WORLDWIDE_COUNTRIES = ['us', 'ca']
 
 function isWorldwide(location: string): boolean {
   return /worldwid|global|remote|anywhere|international/i.test(location)
@@ -52,7 +52,7 @@ function detectCountry(location: string): string {
   for (const [keyword, code] of Object.entries(COUNTRY_MAP)) {
     if (lower.includes(keyword)) return code
   }
-  return 'gb'
+  return 'us'
 }
 
 export async function searchAdzuna(params: SearchParams): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
