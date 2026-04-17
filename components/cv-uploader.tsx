@@ -9,6 +9,11 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  // Job search fields
+  const [title, setTitle] = useState('')
+  const [location, setLocation] = useState('')
+
   const fileRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -28,57 +33,107 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
     setLoading(false)
   }
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h2 className="font-semibold text-gray-900 mb-1">{hasCV ? 'Update your CV' : 'Upload your CV'}</h2>
-      <p className="text-sm text-gray-500 mb-4">Required to search and analyze jobs</p>
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const params = new URLSearchParams({ title, location })
+    router.push(`/search?${params}`)
+  }
 
-      <div className="flex gap-2 mb-4">
-        {(['upload', 'paste'] as const).map(m => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`text-sm px-3 py-1.5 rounded-lg ${mode === m ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+  return (
+    <div className="space-y-4">
+      {/* CV Uploader */}
+      <div className="bg-white border-2 border-gray-100 rounded-3xl p-6">
+        <h2 className="font-bold text-gray-900 mb-1">{hasCV ? 'Update your CV' : 'Upload your CV'}</h2>
+        <p className="text-sm text-gray-400 mb-5">Required to search and analyze jobs</p>
+
+        <div className="flex gap-2 mb-5">
+          {(['upload', 'paste'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`text-sm px-4 py-2 rounded-xl font-semibold transition-colors ${
+                mode === m ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              {m === 'upload' ? '📎 Upload file' : '📋 Paste text'}
+            </button>
+          ))}
+        </div>
+
+        {mode === 'upload' ? (
+          <div
+            onDragOver={e => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) submit(f) }}
+            onClick={() => fileRef.current?.click()}
+            className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+              dragging ? 'border-blue-400 bg-blue-50 scale-[1.01]' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+            }`}
           >
-            {m === 'upload' ? 'Upload file' : 'Paste text'}
-          </button>
-        ))}
+            <div className="text-4xl mb-3">📄</div>
+            <p className="text-sm font-semibold text-gray-700">Drag & drop your CV or <span className="text-blue-600">browse</span></p>
+            <p className="text-xs text-gray-400 mt-1">.pdf · .txt · .md supported</p>
+            <input ref={fileRef} type="file" accept=".pdf,.txt,.md" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) submit(f) }} />
+          </div>
+        ) : (
+          <div>
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder="Paste your CV text here…"
+              rows={10}
+              className="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors font-mono resize-none"
+            />
+            <button
+              onClick={() => submit()}
+              disabled={!text.trim() || loading}
+              className="mt-3 bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-all"
+            >
+              {loading ? 'Saving…' : 'Save CV'}
+            </button>
+          </div>
+        )}
+
+        {error && <p className="text-sm text-red-600 mt-3 bg-red-50 px-4 py-2 rounded-xl">{error}</p>}
+        {success && <p className="text-sm text-emerald-600 mt-3 bg-emerald-50 px-4 py-2 rounded-xl font-semibold">✓ CV saved successfully!</p>}
+        {loading && mode === 'upload' && <p className="text-sm text-gray-400 mt-3 text-center">Processing your CV…</p>}
       </div>
 
-      {mode === 'upload' ? (
-        <div
-          onDragOver={e => { e.preventDefault(); setDragging(true) }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) submit(f) }}
-          onClick={() => fileRef.current?.click()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
-        >
-          <p className="text-sm text-gray-600">Drag & drop your CV or <span className="text-blue-600 font-medium">browse</span></p>
-          <p className="text-xs text-gray-400 mt-1">.pdf, .txt, .md supported</p>
-          <input ref={fileRef} type="file" accept=".pdf,.txt,.md" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) submit(f) }} />
-        </div>
-      ) : (
-        <div>
-          <textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder="Paste your CV text here…"
-            rows={10}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none"
-          />
-          <button
-            onClick={() => submit()}
-            disabled={!text.trim() || loading}
-            className="mt-2 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Saving…' : 'Save CV'}
-          </button>
-        </div>
-      )}
+      {/* Quick Job Search */}
+      <div className="bg-gradient-to-br from-blue-50 to-violet-50 border-2 border-blue-100 rounded-3xl p-6">
+        <h2 className="font-bold text-gray-900 mb-1">Search for jobs</h2>
+        <p className="text-sm text-gray-400 mb-5">Find matching roles and get your AI score instantly</p>
 
-      {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
-      {success && <p className="text-sm text-green-600 mt-3">CV saved successfully!</p>}
-      {loading && mode === 'upload' && <p className="text-sm text-gray-500 mt-3">Processing…</p>}
+        <form onSubmit={handleSearch} className="flex flex-col gap-3">
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <input
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Job title, e.g. Product Manager"
+              required
+              className="w-full border-2 border-white rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white shadow-sm"
+            />
+          </div>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
+            <input
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="Location, e.g. London"
+              required
+              className="w-full border-2 border-white rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white shadow-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!hasCV}
+            className="bg-blue-600 text-white rounded-xl px-5 py-3 text-sm font-bold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-blue-200"
+          >
+            {hasCV ? 'Find matching jobs →' : 'Upload your CV first'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

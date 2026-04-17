@@ -1,19 +1,30 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import JobCard from '@/components/job-card'
 import type { Job, Analysis } from '@/types'
 
 type JobWithAnalysis = Job & { analysis: Analysis | null }
 
 export default function SearchPage() {
-  const [title, setTitle] = useState('')
-  const [location, setLocation] = useState('')
+  const searchParams = useSearchParams()
+  const [title, setTitle] = useState(searchParams.get('title') ?? '')
+  const [location, setLocation] = useState(searchParams.get('location') ?? '')
   const [jobType, setJobType] = useState('')
   const [jobs, setJobs] = useState<JobWithAnalysis[]>([])
   const [loading, setLoading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
+
+  // Auto-search if arriving from dashboard with params
+  useEffect(() => {
+    if (searchParams.get('title') && searchParams.get('location')) {
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent
+      handleSearch(fakeEvent)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
