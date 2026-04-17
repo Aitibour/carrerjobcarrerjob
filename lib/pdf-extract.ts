@@ -1,28 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-// Polyfill browser APIs required by pdfjs-dist in Node.js / serverless
-if (typeof (global as any).DOMMatrix === 'undefined') {
-  (global as any).DOMMatrix = class DOMMatrix {
-    a=1;b=0;c=0;d=1;e=0;f=0
-    constructor(_init?: string | number[]) {}
-    static fromMatrix() { return new (global as any).DOMMatrix() }
-    static fromFloat32Array() { return new (global as any).DOMMatrix() }
-    static fromFloat64Array() { return new (global as any).DOMMatrix() }
-  }
-}
-if (typeof (global as any).Path2D === 'undefined') {
-  (global as any).Path2D = class Path2D {}
-}
-
 export async function extractText(buffer: Buffer, filename: string): Promise<string> {
   const ext = filename.toLowerCase().split('.').pop()
 
   if (ext === 'pdf') {
-    const { extractText: pdfExtract } = await import('unpdf')
-    const result = await pdfExtract(new Uint8Array(buffer), { mergePages: true })
-    const text = Array.isArray(result.text) ? result.text.join('\n') : result.text
-    if (!text?.trim()) throw new Error('Could not extract text from this PDF. It may be a scanned image — try pasting your CV text instead.')
-    return text
+    return extractPDF(buffer)
   }
 
   if (ext === 'docx') {
@@ -37,4 +17,27 @@ export async function extractText(buffer: Buffer, filename: string): Promise<str
   }
 
   throw new Error(`Unsupported file type: .${ext}. Use .pdf, .docx, .txt, or .md`)
+}
+
+function extractPDF(buffer: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const PDFParser = require('pdf2json')
+    const parser = new PDFParser(null, 1)
+
+    parser.on('pdfParser_dataError', (err: { parserError: Error }) => {
+      reject(new Error(err.parserError?.message ?? 'Failed to parse PDF'))
+    })
+
+    parser.on('pdfParser_dataReady', () => {
+      const text = parser.getRawTextContent()
+      if (!text?.trim()) {
+        reject(new Error('Could not extract text from this PDF. It may be a scanned image — try pasting your CV text instead.'))
+      } else {
+        resolve(text)
+      }
+    })
+
+    parser.parseBuffer(buffer)
+  })
 }
