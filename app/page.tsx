@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import RotatingText from '@/components/rotating-text'
 
 const features = [
   {
@@ -98,7 +99,7 @@ export default function LandingPage() {
         <div className="opacity-0-init animate-fade-up">
           <h1 className="text-6xl md:text-7xl font-black text-gray-900 leading-tight mb-6">
             Find jobs that{' '}
-            <span className="gradient-text">actually match</span>
+            <RotatingText />
             <br />your CV
           </h1>
         </div>
