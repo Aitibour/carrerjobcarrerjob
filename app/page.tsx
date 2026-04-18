@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import RotatingText from '@/components/rotating-text'
+import AnimatedStats from '@/components/animated-stats'
 
 const features = [
   {
@@ -21,7 +22,7 @@ const features = [
   {
     icon: '🎯',
     title: 'AI match scoring',
-    desc: 'Get an A–F grade, keyword matches, skill gaps, and a one-line verdict for every role.',
+    desc: 'Get a % match score, keyword matches, skill gaps, and a one-line verdict for every role.',
     color: 'from-emerald-50 to-emerald-100',
     border: 'border-emerald-200',
     iconBg: 'bg-emerald-100',
@@ -68,7 +69,7 @@ const steps = [
   {
     number: '03',
     title: 'Get your match score',
-    desc: 'Click Analyze on any job. AI compares your CV to the job description and gives you a grade A–F with detailed feedback.',
+    desc: 'Click Analyze on any job. AI compares your CV to the job description and gives you a % match score with detailed feedback.',
     icon: '🎯',
   },
   {
@@ -79,12 +80,6 @@ const steps = [
   },
 ]
 
-const stats = [
-  { value: '10s', label: 'CV upload time' },
-  { value: 'A–F', label: 'Match grade system' },
-  { value: '1-click', label: 'Tailored CV' },
-  { value: 'Free', label: 'No credit card' },
-]
 
 export default function LandingPage() {
   return (
@@ -106,7 +101,7 @@ export default function LandingPage() {
 
         <div className="opacity-0-init animate-fade-up delay-200">
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Upload your CV. Search real job listings. Get an AI-powered A–F match score
+            Upload your CV. Search real job listings. Get an AI-powered % match score
             for every role. Build a tailored CV in one click.
           </p>
         </div>
@@ -127,14 +122,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats row */}
-        <div className="opacity-0-init animate-fade-up delay-600 mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
-          {stats.map((s, i) => (
-            <div key={s.label} className={`text-center opacity-0-init animate-counter delay-${(i + 6) * 100}`}>
-              <div className="text-3xl font-black text-blue-600">{s.value}</div>
-              <div className="text-sm text-gray-400 mt-1">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <AnimatedStats />
       </section>
 
       {/* How it works */}
@@ -225,18 +213,20 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Grade cards demo */}
+          {/* Score cards demo */}
           <div className="flex-1 flex flex-col gap-3 w-full max-w-sm mx-auto">
             {[
-              { grade: 'A+', label: 'Senior Frontend Engineer at Stripe', score: 94, color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
-              { grade: 'B+', label: 'Full-Stack Developer at Shopify', score: 78, color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20' },
-              { grade: 'C',  label: 'Data Scientist at Meta', score: 52, color: 'text-amber-400', bg: 'bg-amber-400/10 border-amber-400/20' },
+              { score: 94, label: 'Senior Frontend Engineer at Stripe', color: 'text-emerald-400', bg: 'bg-emerald-400/10 border-emerald-400/20' },
+              { score: 78, label: 'Full-Stack Developer at Shopify', color: 'text-blue-400', bg: 'bg-blue-400/10 border-blue-400/20' },
+              { score: 52, label: 'Data Scientist at Meta', color: 'text-amber-400', bg: 'bg-amber-400/10 border-amber-400/20' },
             ].map((item, i) => (
               <div
-                key={item.grade}
+                key={item.score}
                 className={`card-hover ${item.bg} border rounded-2xl p-4 flex items-center gap-4 opacity-0-init animate-slide-left delay-${(i + 2) * 200}`}
               >
-                <div className={`text-3xl font-black ${item.color} w-12 text-center`}>{item.grade}</div>
+                <div className={`text-2xl font-black ${item.color} w-14 text-center leading-none`}>
+                  {item.score}%
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-white text-sm font-medium truncate">{item.label}</div>
                   <div className="mt-1.5 bg-gray-700 rounded-full h-1.5 w-full">
@@ -246,7 +236,9 @@ export default function LandingPage() {
                     />
                   </div>
                 </div>
-                <div className={`text-sm font-bold ${item.color}`}>{item.score}%</div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${item.color} bg-white/10`}>
+                  {item.score >= 85 ? 'Great' : item.score >= 65 ? 'Good' : 'Fair'}
+                </span>
               </div>
             ))}
           </div>

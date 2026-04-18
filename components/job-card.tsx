@@ -3,21 +3,25 @@ import { useState } from 'react'
 import type { Job, Analysis } from '@/types'
 import Link from 'next/link'
 
-const GRADE_COLORS: Record<string, string> = {
-  'A+': 'bg-green-100 text-green-700',
-  'A':  'bg-green-100 text-green-700',
-  'B+': 'bg-emerald-100 text-emerald-700',
-  'B':  'bg-yellow-100 text-yellow-700',
-  'C':  'bg-orange-100 text-orange-700',
-  'D':  'bg-red-100 text-red-700',
-  'F':  'bg-red-100 text-red-700',
+function scoreColor(score: number) {
+  if (score >= 85) return 'bg-green-100 text-green-700'
+  if (score >= 70) return 'bg-blue-100 text-blue-700'
+  if (score >= 50) return 'bg-amber-100 text-amber-700'
+  if (score >= 35) return 'bg-orange-100 text-orange-700'
+  return 'bg-red-100 text-red-700'
 }
 
 function formatSalary(min: number | null, max: number | null): string {
   if (!min && !max) return 'Salary not listed'
-  if (min && max) return `£${(min / 1000).toFixed(0)}k–£${(max / 1000).toFixed(0)}k`
-  if (min) return `From £${(min / 1000).toFixed(0)}k`
-  return `Up to £${(max! / 1000).toFixed(0)}k`
+  if (min && max) return `$${(min / 1000).toFixed(0)}k–$${(max / 1000).toFixed(0)}k`
+  if (min) return `From $${(min / 1000).toFixed(0)}k`
+  return `Up to $${(max! / 1000).toFixed(0)}k`
+}
+
+function jobSearchUrl(site: 'indeed' | 'linkedin', title: string, company: string) {
+  const q = encodeURIComponent(`${title} ${company}`)
+  if (site === 'indeed') return `https://www.indeed.com/jobs?q=${q}`
+  return `https://www.linkedin.com/jobs/search/?keywords=${q}`
 }
 
 interface JobCardProps {
@@ -54,9 +58,14 @@ export default function JobCard({ job, analysis }: JobCardProps) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
-      {/* Grade badge */}
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0 ${currentAnalysis ? GRADE_COLORS[currentAnalysis.grade] : 'bg-gray-100 text-gray-400'}`}>
-        {currentAnalysis ? currentAnalysis.grade : '—'}
+      {/* Score badge */}
+      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${currentAnalysis ? scoreColor(currentAnalysis.score) : 'bg-gray-100 text-gray-400'}`}>
+        {currentAnalysis ? (
+          <>
+            <span className="text-sm font-black leading-none">{currentAnalysis.score}%</span>
+            <span className="text-[10px] opacity-60 leading-none mt-0.5">match</span>
+          </>
+        ) : '—'}
       </div>
 
       {/* Content */}
@@ -79,13 +88,37 @@ export default function JobCard({ job, analysis }: JobCardProps) {
             ))}
           </div>
         )}
+
+        {/* External job links */}
+        <div className="flex gap-2 mt-2">
+          <a
+            href={jobSearchUrl('indeed', job.title, job.company)}
+            target="_blank" rel="noopener noreferrer"
+            className="text-[11px] text-gray-400 hover:text-blue-600 underline"
+          >
+            Indeed
+          </a>
+          <a
+            href={jobSearchUrl('linkedin', job.title, job.company)}
+            target="_blank" rel="noopener noreferrer"
+            className="text-[11px] text-gray-400 hover:text-blue-600 underline"
+          >
+            LinkedIn
+          </a>
+          {job.url && (
+            <a
+              href={job.url}
+              target="_blank" rel="noopener noreferrer"
+              className="text-[11px] text-gray-400 hover:text-blue-600 underline"
+            >
+              Adzuna
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Actions */}
       <div className="flex flex-col gap-1.5 flex-shrink-0 items-end">
-        {currentAnalysis && (
-          <span className="text-xs font-medium text-gray-600">{currentAnalysis.score}%</span>
-        )}
         {!currentAnalysis && (
           <button
             onClick={handleAnalyze}
