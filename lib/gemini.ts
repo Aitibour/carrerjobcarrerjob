@@ -14,7 +14,7 @@ interface MatchAnalysis {
 }
 
 export async function analyzeMatch(cvText: string, jobDescription: string): Promise<MatchAnalysis> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
   const prompt = `You are an expert career coach and ATS system. Analyze how well this CV matches the job description.
 
@@ -46,8 +46,34 @@ Grading scale: A+ (95-100), A (85-94), B+ (75-84), B (65-74), C (50-64), D (35-4
   return JSON.parse(json) as MatchAnalysis
 }
 
+export async function analyzeJobOnly(jobDescription: string): Promise<MatchAnalysis> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+  const prompt = `You are an expert career coach. Analyze this job description and extract key information.
+No CV is provided — give a general breakdown of what this role requires.
+
+Job Description:
+${jobDescription}
+
+Respond with ONLY a JSON object (no markdown, no explanation):
+{
+  "grade": "B",
+  "score": 50,
+  "strengths": [<up to 5 key selling points of this role>],
+  "gaps": [<up to 5 most important requirements a candidate must meet>],
+  "matched_keywords": [<up to 10 key skills/keywords this role values>],
+  "missing_keywords": [],
+  "verdict": "Upload your CV to get a personalised match score for this role."
+}`
+
+  const result = await model.generateContent(prompt)
+  const text = result.response.text().trim()
+  const json = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+  return JSON.parse(json) as MatchAnalysis
+}
+
 export async function buildTailoredCV(cvText: string, jobDescription: string): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
   const prompt = `You are an expert CV writer. Rewrite the CV below to be optimally tailored for the job description provided.
 

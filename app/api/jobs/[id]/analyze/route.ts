@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { analyzeMatch } from '@/lib/gemini'
+import { analyzeMatch, analyzeJobOnly } from '@/lib/gemini'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +19,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (existing) return NextResponse.json({ analysis: existing })
 
-  // Get CV
+  // Get job
+  const { data: job } = await supabase.from('jobs').select('*').eq('id', jobId).single()
+  if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+
+  // Get CV (optional — analyze without CV if not uploaded yet)
   const { data: cv } = await supabase
     .from('cvs')
     .select('content')
@@ -27,16 +31,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .eq('is_active', true)
     .single()
 
-  if (!cv) return NextResponse.json({ error: 'No active CV found' }, { status: 400 })
-
-  // Get job
-  const { data: job } = await supabase.from('jobs').select('*').eq('id', jobId).single()
-  if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-
-  // Run Gemini analysis
   let result
   try {
-    result = await analyzeMatch(cv.content, `${job.title} at ${job.company}\n${job.description}`)
+    const jobText = `${job.title} at ${job.company}\n${job.description}`
+    result = cv
+      ? await analyzeMatch(cv.content, jobText)
+      : await analyzeJobOnly(jobText)
   } catch (err: unknown) {
     return NextResponse.json({ error: (err as Error).message }, { status: 502 })
   }
