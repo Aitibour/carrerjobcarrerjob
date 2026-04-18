@@ -13,6 +13,7 @@ export default function SearchPage() {
   const [title, setTitle] = useState(searchParams.get('title') ?? '')
   const [location, setLocation] = useState(searchParams.get('location') ?? '')
   const [jobType, setJobType] = useState('')
+  const [postedWithin, setPostedWithin] = useState('')
   const [jobs, setJobs] = useState<JobWithAnalysis[]>([])
   const [loading, setLoading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -36,6 +37,7 @@ export default function SearchPage() {
 
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
+    if (postedWithin) params.set('postedWithin', postedWithin)
 
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
@@ -51,6 +53,7 @@ export default function SearchPage() {
     await Promise.all(unanalyzed.map(j => fetch(`/api/jobs/${j.id}/analyze`, { method: 'POST' })))
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
+    if (postedWithin) params.set('postedWithin', postedWithin)
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
     if (res.ok) setJobs(data.jobs)
@@ -90,6 +93,16 @@ export default function SearchPage() {
             <option value="full_time">Full-time</option>
             <option value="part_time">Part-time</option>
             <option value="contract">Contract</option>
+          </select>
+          <select
+            value={postedWithin} onChange={e => setPostedWithin(e.target.value)}
+            className="border-2 border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-600"
+          >
+            <option value="">Any time</option>
+            <option value="1">Last 24 hours</option>
+            <option value="3">Last 3 days</option>
+            <option value="7">Last week</option>
+            <option value="30">Last month</option>
           </select>
           <button
             type="submit" disabled={loading}

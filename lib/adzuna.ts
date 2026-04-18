@@ -4,6 +4,7 @@ interface SearchParams {
   title: string
   location: string
   jobType?: 'full_time' | 'part_time' | 'contract'
+  postedWithin?: number
   resultsPerPage?: number
 }
 
@@ -56,18 +57,18 @@ function detectCountry(location: string): string {
 }
 
 export async function searchAdzuna(params: SearchParams): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
-  const { title, location, jobType, resultsPerPage = 20 } = params
+  const { title, location, jobType, postedWithin, resultsPerPage = 20 } = params
 
   if (isWorldwide(location)) {
-    return searchMultipleCountries(title, WORLDWIDE_COUNTRIES, jobType, Math.ceil(resultsPerPage / 2))
+    return searchMultipleCountries(title, WORLDWIDE_COUNTRIES, jobType, postedWithin, Math.ceil(resultsPerPage / 2))
   }
 
   const country = detectCountry(location)
-  const results = await fetchCountry(title, location, country, jobType, resultsPerPage)
+  const results = await fetchCountry(title, location, country, jobType, postedWithin, resultsPerPage)
 
   // If primary country returns < 5 results, supplement with worldwide
   if (results.length < 5) {
-    const extra = await searchMultipleCountries(title, WORLDWIDE_COUNTRIES.filter(c => c !== country), jobType, 5)
+    const extra = await searchMultipleCountries(title, WORLDWIDE_COUNTRIES.filter(c => c !== country), jobType, postedWithin, 5)
     const seen = new Set(results.map(r => r.adzuna_id))
     return [...results, ...extra.filter(r => !seen.has(r.adzuna_id))].slice(0, resultsPerPage)
   }
@@ -79,10 +80,11 @@ async function searchMultipleCountries(
   title: string,
   countries: string[],
   jobType?: 'full_time' | 'part_time' | 'contract',
+  postedWithin?: number,
   perCountry = 5,
 ): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
   const settled = await Promise.allSettled(
-    countries.map(c => fetchCountry(title, '', c, jobType, perCountry))
+    countries.map(c => fetchCountry(title, '', c, jobType, postedWithin, perCountry))
   )
   const seen = new Set<string>()
   const merged: Omit<Job, 'id' | 'cached_at'>[] = []
@@ -104,6 +106,7 @@ async function fetchCountry(
   location: string,
   country: string,
   jobType?: 'full_time' | 'part_time' | 'contract',
+  postedWithin?: number,
   resultsPerPage = 20,
 ): Promise<Omit<Job, 'id' | 'cached_at'>[]> {
   const url = new URL(`https://api.adzuna.com/v1/api/jobs/${country}/search/1`)
@@ -116,6 +119,7 @@ async function fetchCountry(
   if (jobType === 'full_time') url.searchParams.set('full_time', '1')
   if (jobType === 'part_time') url.searchParams.set('part_time', '1')
   if (jobType === 'contract') url.searchParams.set('contract', '1')
+  if (postedWithin) url.searchParams.set('max_days_old', String(postedWithin))
 
   const res = await fetch(url.toString())
   if (!res.ok) return []

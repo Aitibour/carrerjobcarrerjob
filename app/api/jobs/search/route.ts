@@ -15,13 +15,15 @@ export async function GET(request: Request) {
   const title = searchParams.get('title')?.trim()
   const location = searchParams.get('location')?.trim()
   const jobType = searchParams.get('jobType') as 'full_time' | 'part_time' | 'contract' | undefined
+  const postedWithinRaw = searchParams.get('postedWithin')
+  const postedWithin = postedWithinRaw ? parseInt(postedWithinRaw, 10) : undefined
 
   if (!title || !location) return NextResponse.json({ error: 'title and location are required' }, { status: 400 })
 
   // Fetch from Adzuna
   let rawJobs
   try {
-    rawJobs = await searchAdzuna({ title, location, jobType })
+    rawJobs = await searchAdzuna({ title, location, jobType, postedWithin })
   } catch (err: unknown) {
     return NextResponse.json({ error: (err as Error).message }, { status: 502 })
   }
