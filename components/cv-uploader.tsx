@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import AutocompleteInput from '@/components/autocomplete-input'
+import { JOB_TITLES, LOCATIONS } from '@/lib/suggestions'
 
 export default function CVUploader({ hasCV }: { hasCV: boolean }) {
   const [mode, setMode] = useState<'upload' | 'paste'>('upload')
@@ -111,26 +113,18 @@ export default function CVUploader({ hasCV }: { hasCV: boolean }) {
         <p className="text-sm text-gray-400 mb-5">Find matching roles and get your AI score instantly</p>
 
         <form onSubmit={handleSearch} className="flex flex-col gap-3">
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            <input
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Job title, e.g. Product Manager"
-              required
-              className="w-full border-2 border-white rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white shadow-sm"
-            />
-          </div>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
-            <input
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="Location or Worldwide"
-              required
-              className="w-full border-2 border-white rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white shadow-sm"
-            />
-          </div>
+          <AutocompleteInput
+            value={title} onChange={setTitle}
+            suggestions={JOB_TITLES}
+            placeholder="Job title, e.g. Product Manager"
+            icon="🔍" required
+          />
+          <AutocompleteInput
+            value={location} onChange={setLocation}
+            suggestions={LOCATIONS}
+            placeholder="Location or Worldwide"
+            icon="📍" required
+          />
           <button
             type="submit"
             disabled={!hasCV}

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import JobCard from '@/components/job-card'
+import AutocompleteInput from '@/components/autocomplete-input'
+import { JOB_TITLES, LOCATIONS } from '@/lib/suggestions'
 import type { Job, Analysis } from '@/types'
 
 type JobWithAnalysis = Job & { analysis: Analysis | null }
@@ -66,24 +68,20 @@ export default function SearchPage() {
       {/* Search form */}
       <form onSubmit={handleSearch} className="bg-white border-2 border-gray-100 rounded-3xl p-5 mb-8 shadow-sm">
         <div className="flex gap-3 flex-wrap">
-          <div className="flex-[2] min-w-48 relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">🔍</span>
-            <input
-              value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Job title, e.g. Product Manager"
-              required
-              className="w-full border-2 border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors"
-            />
-          </div>
-          <div className="flex-1 min-w-32 relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">📍</span>
-            <input
-              value={location} onChange={e => setLocation(e.target.value)}
-              placeholder="Location or Worldwide"
-              required
-              className="w-full border-2 border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors"
-            />
-          </div>
+          <AutocompleteInput
+            value={title} onChange={setTitle}
+            suggestions={JOB_TITLES}
+            placeholder="Job title, e.g. Product Manager"
+            icon="🔍" required
+            className="flex-[2] min-w-48"
+          />
+          <AutocompleteInput
+            value={location} onChange={setLocation}
+            suggestions={LOCATIONS}
+            placeholder="Location or Worldwide"
+            icon="📍" required
+            className="flex-1 min-w-32"
+          />
           <select
             value={jobType} onChange={e => setJobType(e.target.value)}
             className="border-2 border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition-colors bg-white text-gray-600"
