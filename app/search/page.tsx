@@ -14,6 +14,9 @@ export default function SearchPage() {
   const [location, setLocation] = useState(searchParams.get('location') ?? '')
   const [jobType, setJobType] = useState('')
   const [postedWithin, setPostedWithin] = useState('')
+  const [remoteOnly, setRemoteOnly] = useState(false)
+  const [sortByScore, setSortByScore] = useState(false)
+  const [originalOrder, setOriginalOrder] = useState<JobWithAnalysis[]>([])
   const [jobs, setJobs] = useState<JobWithAnalysis[]>([])
   const [loading, setLoading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -38,12 +41,15 @@ export default function SearchPage() {
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
     if (postedWithin) params.set('postedWithin', postedWithin)
+    if (remoteOnly) params.set('remote', '1')
 
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
 
     if (!res.ok) { setError(data.error ?? `Search failed (${res.status})`); setLoading(false); return }
     setJobs(data.jobs)
+    setOriginalOrder(data.jobs)
+    setSortByScore(false)
     setLoading(false)
   }
 
@@ -54,10 +60,24 @@ export default function SearchPage() {
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
     if (postedWithin) params.set('postedWithin', postedWithin)
+    if (remoteOnly) params.set('remote', '1')
     const res = await fetch(`/api/jobs/search?${params}`)
     const data = await res.json()
-    if (res.ok) setJobs(data.jobs)
+    if (res.ok) {
+      setJobs(data.jobs)
+      setOriginalOrder(data.jobs)
+    }
     setAnalyzing(false)
+  }
+
+  function toggleSort() {
+    if (sortByScore) {
+      setJobs(originalOrder)
+      setSortByScore(false)
+    } else {
+      setJobs(prev => [...prev].sort((a, b) => (b.analysis?.score ?? -1) - (a.analysis?.score ?? -1)))
+      setSortByScore(true)
+    }
   }
 
   return (
@@ -105,6 +125,17 @@ export default function SearchPage() {
             <option value="30">Last month</option>
           </select>
           <button
+            type="button"
+            onClick={() => setRemoteOnly(r => !r)}
+            className={`border-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              remoteOnly
+                ? 'border-blue-400 bg-blue-50 text-blue-700'
+                : 'border-gray-100 bg-white text-gray-600 hover:border-blue-200'
+            }`}
+          >
+            🌐 Remote only
+          </button>
+          <button
             type="submit" disabled={loading}
             className="bg-blue-600 text-white rounded-xl px-6 py-3 text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-blue-200 whitespace-nowrap"
           >
@@ -135,6 +166,18 @@ export default function SearchPage() {
               <span className="text-gray-400 text-sm ml-2">· Click Analyze to see your match grade</span>
             )}
           </div>
+          {jobs.some(j => j.analysis) && (
+            <button
+              onClick={toggleSort}
+              className={`text-sm px-4 py-2 rounded-xl font-semibold border-2 transition-colors ${
+                sortByScore
+                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 text-gray-600 hover:border-blue-200'
+              }`}
+            >
+              {sortByScore ? '✓ Sorted by score' : '↕ Sort by score'}
+            </button>
+          )}
           {jobs.some(j => !j.analysis) && (
             <button
               onClick={analyzeAll}
