@@ -22,6 +22,7 @@ export default function SearchPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
+  const [analyzeProgress, setAnalyzeProgress] = useState<{ done: number; total: number } | null>(null)
 
   // Auto-search if arriving from dashboard with params
   useEffect(() => {
@@ -56,7 +57,18 @@ export default function SearchPage() {
   async function analyzeAll() {
     setAnalyzing(true)
     const unanalyzed = jobs.filter(j => !j.analysis)
-    await Promise.all(unanalyzed.map(j => fetch(`/api/jobs/${j.id}/analyze`, { method: 'POST' })))
+    const total = unanalyzed.length
+    let done = 0
+    setAnalyzeProgress({ done: 0, total })
+
+    const CHUNK = 3
+    for (let i = 0; i < unanalyzed.length; i += CHUNK) {
+      const chunk = unanalyzed.slice(i, i + CHUNK)
+      await Promise.all(chunk.map(j => fetch(`/api/jobs/${j.id}/analyze`, { method: 'POST' })))
+      done += chunk.length
+      setAnalyzeProgress({ done, total })
+    }
+
     const params = new URLSearchParams({ title, location })
     if (jobType) params.set('jobType', jobType)
     if (postedWithin) params.set('postedWithin', postedWithin)
@@ -68,6 +80,7 @@ export default function SearchPage() {
       setOriginalOrder(data.jobs)
     }
     setAnalyzing(false)
+    setAnalyzeProgress(null)
   }
 
   function toggleSort() {
@@ -190,7 +203,9 @@ export default function SearchPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
-                  Analyzing…
+                  {analyzeProgress
+                    ? `Analyzing ${analyzeProgress.done}/${analyzeProgress.total}…`
+                    : 'Analyzing…'}
                 </>
               ) : '🎯 Analyze all'}
             </button>
