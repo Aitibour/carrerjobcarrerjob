@@ -35,6 +35,7 @@ export default function TrackerPage() {
     fetch('/api/applications')
       .then(r => r.json())
       .then(d => { setApplications(d.applications ?? []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   async function move(jobId: string, status: string) {

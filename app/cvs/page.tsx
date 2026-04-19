@@ -21,6 +21,7 @@ export default function CVsPage() {
     fetch('/api/cvs')
       .then(r => r.json())
       .then(d => { setCvs(d.cvs ?? []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   async function activate(id: string) {

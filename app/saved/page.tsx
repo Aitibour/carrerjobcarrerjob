@@ -40,6 +40,7 @@ export default function SavedPage() {
     fetch('/api/applications')
       .then(r => r.json())
       .then(d => { setApplications(d.applications ?? []); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [])
 
   async function updateStatus(jobId: string, status: string) {
