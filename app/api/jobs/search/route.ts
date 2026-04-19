@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   const jobType = searchParams.get('jobType') as 'full_time' | 'part_time' | 'contract' | undefined
   const postedWithinRaw = searchParams.get('postedWithin')
   const postedWithin = postedWithinRaw ? parseInt(postedWithinRaw, 10) : undefined
+  const remoteOnly = searchParams.get('remote') === '1'
 
   if (!title || !location) return NextResponse.json({ error: 'title and location are required' }, { status: 400 })
 
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
   let rawJobs
   try {
     rawJobs = await searchAdzuna({ title, location, jobType, postedWithin })
+    if (remoteOnly) rawJobs = rawJobs.filter(j => j.remote)
   } catch (err: unknown) {
     return NextResponse.json({ error: (err as Error).message }, { status: 502 })
   }
