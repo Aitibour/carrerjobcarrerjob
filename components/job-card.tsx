@@ -24,6 +24,10 @@ function jobSearchUrl(site: 'indeed' | 'linkedin', title: string, company: strin
   return `https://www.linkedin.com/jobs/search/?keywords=${q}`
 }
 
+function isStale(cachedAt: string): boolean {
+  return Date.now() - new Date(cachedAt).getTime() > 48 * 60 * 60 * 1000
+}
+
 interface JobCardProps {
   job: Job
   analysis: Analysis | null
@@ -89,6 +93,9 @@ export default function JobCard({ job, analysis }: JobCardProps) {
           </div>
         )}
 
+        {isStale(job.cached_at) && (
+          <p className="text-[11px] text-amber-600 mt-1.5">⚠ Listing may be outdated</p>
+        )}
         {/* External job links */}
         <div className="flex gap-2 mt-2">
           <a
